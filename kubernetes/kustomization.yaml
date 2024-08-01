@@ -1,0 +1,9 @@
+resources:
+  - backend-deployment.yaml
+  - backend-service.yaml
+  - frontend-deployment.yaml
+  - frontend-service.yaml
+  - ingestion-deployment.yaml
+  - ingestion-service.yaml
+  - model-deployment.yaml
+  - model-service.yaml

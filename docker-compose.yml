@@ -1,0 +1,50 @@
+version: '3.8'
+
+#  Services: different containers (services) that make up the application. Each service will run in its own container.
+services:
+  backend:
+    build:                        # Specifies how to build the Docker image for this service
+      context: ./backend          # The build context is set to the ./backend directory.
+      dockerfile: Dockerfile      # Uses the Dockerfile in the ./backend directory.
+    ports:
+      - "8000:8000"               # Maps port 8000 of the container to port 8000 on the host machine.
+    environment:
+      - DATABASE_URL=/data/vector_db.sqlite
+    volumes:                      
+      - ./backend:/app/backend    # Mounts the ./backend directory from the host to /app/backend in the container.
+      - ./data:/data
+    depends_on:                   # Ensures this service starts after the 'model' and 'ingestion' services.
+      - model
+      - ingestion
+
+  ingestion:
+    build:
+      context: ./ingestion
+      dockerfile: Dockerfile
+    volumes:                      # Two volumes are mounted: one for ingestion files and one for backend files.
+      - ./ingestion:/app/ingestion 
+      - ./backend:/app/backend
+    environment:
+      - PYTHONPATH=/app
+
+  model:
+    build:
+      context: ./model
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./model:/app/model
+      - ./backend:/app/backend
+    environment:
+      - PYTHONPATH=/app
+
+  # Uncomment and configure the frontend service as needed
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./frontend:/app
