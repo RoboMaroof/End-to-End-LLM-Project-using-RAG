@@ -98,6 +98,7 @@ project-root/
 │   │   ├── build-and-deploy.yml
 │
 └── docker-compose.yml
+```
 
 
 ## Usage
