@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Set the PYTHONPATH environment variable to ensure the app module is found
-ENV PYTHONPATH=/home/maroof/RAG_Project/docsum_app
+ENV PYTHONPATH=/home/maroof/RAG-Project-1/End-to-End-LLM-Project-using-RAG
 
 # Expose the port FastAPI is running on
 EXPOSE 8000

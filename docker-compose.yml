@@ -39,12 +39,14 @@ services:
     environment:
       - PYTHONPATH=/app
 
-  # Uncomment and configure the frontend service as needed
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - ./frontend:/app
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "5000:5000"
+    environment:
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend

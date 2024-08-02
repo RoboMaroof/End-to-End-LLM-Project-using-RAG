@@ -1,0 +1,22 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    color: #333;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+#results {
+    list-style-type: none;
+    padding: 0;
+}
+
+#results li {
+    margin: 5px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
