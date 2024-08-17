@@ -3,6 +3,9 @@ from app.services.vector_db import VectorDB
 from app.services.summarizer import Summarizer
 from app.models import DocumentIngest
 import fitz
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 vector_db = VectorDB()
@@ -16,17 +19,48 @@ def extract_text_from_pdf(file: UploadFile) -> str:
         text += page.get_text("text")
     return text
 
-@router.post("/ingest", response_model=DocumentIngest)
+# @router.post("/ingest", response_model=DocumentIngest)
+@router.post("/ingest")
 async def ingest_document(file: UploadFile = File(...)):
+    logger.info(f"Received file: {file.filename}, content_type: {file.content_type}")
     try:
+        # Read and process the file content based on type (PDF or text).
         if file.content_type == "application/pdf":
             content = extract_text_from_pdf(file)
         else:
             content = await file.read()
             content = content.decode('utf-8')
-        summary = summarizer.summarize(content.decode('utf-8'))
-        embedding = summarizer.embed(content.decode('utf-8')).tolist()
-        vector_db.store_document(file.filename, summary, embedding)
-        return DocumentIngest(filename=file.filename, summary=summary, embedding=embedding)
+        logger.info(f"Content of length {len(content)} extracted")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
+
+    try:
+        # Chunk the content.
+        chunks = summarizer.chunk_text(content, max_length=512)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error summarizing document: {str(e)}")
+
+    try:
+        # Summarize the content.
+        summary = summarizer.summarize(chunks)
+        logger.info(f"{len(chunks)} chunks created")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error summarizing document: {str(e)}")
+
+    try:
+        # Generate embedding for the content.
+        embedding = summarizer.embed(chunks)
+        logger.info(f"{len(embedding)} embeddings created")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating embedding: {str(e)}")
+
+    try:
+        # Store the document summary and embedding in the vector database.
+        vector_db.store_document(file.filename, summary, embedding)
+        logger.info(f"Summary and embeddings for {file.filename} stored in DB")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error storing document in vector database: {str(e)}")
+
+    logger.info("File ingestion completed")
+
+

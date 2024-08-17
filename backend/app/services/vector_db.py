@@ -9,12 +9,14 @@ class VectorDB:
         self.c = self.conn.cursor()
 
     def store_document(self, filename: str, summary: str, embedding):
+        print("<<<<<<<<<<<<<<< ENTERING store_document >>>>>>>>>>>>>>>>>>>")
         embedding_blob = pickle.dumps(embedding)
         self.c.execute('''
             INSERT INTO documents (filename, summary, embedding)
             VALUES (?, ?, ?)
         ''', (filename, summary, embedding_blob))
         self.conn.commit()
+        print("<<<<<<<<<<<<<<< EXITING store_document >>>>>>>>>>>>>>>>>>>")
 
     def search_documents(self, query_embedding):
         self.c.execute('SELECT id, filename, summary, embedding FROM documents')

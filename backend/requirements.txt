@@ -7,3 +7,4 @@ torch
 sentence-transformers
 python-dotenv
 PyMuPDF
+python-multipart

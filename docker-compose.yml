@@ -3,6 +3,7 @@ version: '3.8'
 #  Services: different containers (services) that make up the application. Each service will run in its own container.
 services:
   backend:
+    container_name: backend
     build:                        # Specifies how to build the Docker image for this service
       context: ./backend          # The build context is set to the ./backend directory.
       dockerfile: Dockerfile      # Uses the Dockerfile in the ./backend directory.
@@ -16,8 +17,17 @@ services:
     depends_on:                   # Ensures this service starts after the 'model' and 'ingestion' services.
       - model
       - ingestion
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
 
   ingestion:
+    container_name: ingestion
     build:
       context: ./ingestion
       dockerfile: Dockerfile
@@ -26,8 +36,11 @@ services:
       - ./backend:/app/backend
     environment:
       - PYTHONPATH=/app
+    networks:
+      - app-network
 
   model:
+    container_name: model
     build:
       context: ./model
       dockerfile: Dockerfile
@@ -38,7 +51,8 @@ services:
       - ./backend:/app/backend
     environment:
       - PYTHONPATH=/app
-
+    networks:
+      - app-network
 
   frontend:
     build:
@@ -48,5 +62,12 @@ services:
       - "5000:5000"
     environment:
       - BACKEND_URL=http://backend:8000
+      - GUNICORN_CMD_ARGS="--timeout 120 --limit-request-line 0 --limit-request-field_size 0"
     depends_on:
       - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
